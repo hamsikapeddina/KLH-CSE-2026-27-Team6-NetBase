@@ -1,4 +1,4 @@
- Multi-Agent AI Execution and Resource Management System 
+Database Client-Server Management System
 
  Team Members:
  2520030586- Hamsika Peddina
