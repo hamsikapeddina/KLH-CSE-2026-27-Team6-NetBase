@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>University ERP — Concurrent Client-Server System</title>
+  <meta name="description" content="Operating Systems academic project demonstrating concurrent client-server architecture in C with POSIX threads, synchronization, and OS monitoring." />
+  <meta property="og:title" content="University ERP — Concurrent Client-Server System" />
+  <meta property="og:description" content="Operating Systems academic project demonstrating concurrent client-server architecture in C with POSIX threads, synchronization, and OS monitoring." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- Global Application Header -->
+  <header class="app-header" id="app-header">
+    <div class="header-container" id="header-container">
+      <div class="brand" id="brand-container">
+        <div class="brand-icon" id="brand-icon">🎓</div>
+        <div>
+          <h1 class="brand-title" id="brand-title">University ERP System</h1>
+          <p class="brand-subtitle" id="brand-subtitle">Concurrent Linux Client-Server System</p>
+        </div>
+      </div>
+      
+      <div class="header-right" id="header-right">
+        <!-- Live C Server Status Indicator -->
+        <div class="server-status-pill" id="server-status-pill">
+          <span class="status-indicator online" id="status-dot"></span>
+          <span id="server-status-text">C Server Online (PID: ...)</span>
+        </div>
+
+        <!-- Global OS Monitor Toggle Button -->
+        <button class="btn btn-secondary btn-sm" id="btn-toggle-os-view" title="Toggle Linux OS Architecture & Concurrency Monitor">
+          ⚡ OS Monitor
+        </button>
+
+        <!-- Authenticated User Profile Chip -->
+        <div class="user-badge hidden" id="user-badge">
+          <span class="user-badge-role" id="user-badge-role">STUDENT</span>
+          <span id="user-badge-name">Aarav Sharma</span>
+          <button class="btn btn-secondary btn-sm" id="btn-logout" title="Switch or Logout">Logout</button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="main-container" id="main-container">
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: AUTHENTICATION / LOGIN VIEW                                       -->
+    <!-- ========================================================================= -->
+    <section id="view-auth" class="auth-view">
+      <div class="hero-banner">
+        <h2 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35rem; color: #f8fafc;">UNIVERSITY ACADEMIC ERP</h2>
+        <p class="hero-desc" style="font-size: 1rem; color: #94a3b8; margin-bottom: 1.25rem;">
+          Concurrent Linux Client-Server System &bull; Pure C POSIX Socket Backend
+        </p>
+
+        <!-- OS Process Architecture Flow -->
+        <div class="arch-flow">
+          <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-label">Browser Client</div>
+            <div class="step-sub">HTTP Client</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step highlight">
+            <div class="step-num">2</div>
+            <div class="step-label">TCP Socket</div>
+            <div class="step-sub">accept() on port 3000</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step highlight">
+            <div class="step-num">3</div>
+            <div class="step-label">Request Queue</div>
+            <div class="step-sub">32-Slot Ring Buffer</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step highlight">
+            <div class="step-num">4</div>
+            <div class="step-label">4 Worker Threads</div>
+            <div class="step-sub">pthread Consumers</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step">
+            <div class="step-num">5</div>
+            <div class="step-label">Semaphore + Mutex</div>
+            <div class="step-sub">2 Slots (sem_t)</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step">
+            <div class="step-num">6</div>
+            <div class="step-label">mmap Storage</div>
+            <div class="step-sub">POSIX msync()</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step highlight">
+            <div class="step-num">7</div>
+            <div class="step-label">Response Queue</div>
+            <div class="step-sub">32-Slot Buffer</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step highlight">
+            <div class="step-num">8</div>
+            <div class="step-label">Dispatcher</div>
+            <div class="step-sub">Dedicated Thread</div>
+          </div>
+          <div class="flow-arrow">⟶</div>
+          <div class="flow-step">
+            <div class="step-num">9</div>
+            <div class="step-label">Browser</div>
+            <div class="step-sub">HTTP Response</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Box -->
+      <div class="grid-2col" style="max-width: 1040px; margin: 0 auto;">
+        <div class="card">
+          <div class="card-header">
+            <h3>🔐 Role-Based Sign In</h3>
+            <span class="badge badge-blue">POSIX Authenticated</span>
+          </div>
+
+          <!-- Role Toggle Buttons -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+            <button class="btn btn-primary" id="role-btn-student" style="flex: 1;">👨‍🎓 Student Login</button>
+            <button class="btn btn-secondary" id="role-btn-faculty" style="flex: 1;">👨‍🏫 Faculty Login</button>
+          </div>
+
+          <form id="login-form">
+            <div class="form-group">
+              <label class="form-label" for="login-id" id="login-id-label">Student ID (e.g. S101, S102)</label>
+              <input type="text" id="login-id" class="form-input" placeholder="e.g. S101" required value="S101" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="login-password">Password</label>
+              <input type="password" id="login-password" class="form-input" placeholder="Enter password" required value="pass101" />
+            </div>
+
+            <div id="login-error" class="badge badge-red hidden" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">
+              Invalid credentials.
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">
+              Sign In to Academic Portal
+            </button>
+          </form>
+        </div>
+
+        <!-- Demo Accounts Section -->
+        <div class="card">
+          <div class="card-header">
+            <h3>⚡ Demo Accounts</h3>
+            <span class="badge badge-green">1-Click Sign In</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Click any seeded test account to authenticate directly through the C server:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <button class="demo-chip" id="demo-student-s101" style="justify-content: flex-start; padding: 0.65rem 1rem;">
+              <span style="font-size: 1.1rem;">👨‍🎓</span>
+              <div>
+                <strong>Aarav Sharma (S101)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Student &bull; Computer Science (Year 3)</div>
+              </div>
+            </button>
+
+            <button class="demo-chip" id="demo-student-s102" style="justify-content: flex-start; padding: 0.65rem 1rem;">
+              <span style="font-size: 1.1rem;">👩‍🎓</span>
+              <div>
+                <strong>Priya Patel (S102)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Student &bull; Computer Science (Year 2)</div>
+              </div>
+            </button>
+
+            <button class="demo-chip" id="demo-faculty-f201" style="justify-content: flex-start; padding: 0.65rem 1rem;">
+              <span style="font-size: 1.1rem;">👨‍🏫</span>
+              <div>
+                <strong>Dr. Vikram Rao (F201)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Faculty &bull; Computer Science (Operating Systems)</div>
+              </div>
+            </button>
+
+            <button class="demo-chip" id="demo-faculty-f202" style="justify-content: flex-start; padding: 0.65rem 1rem;">
+              <span style="font-size: 1.1rem;">👩‍🏫</span>
+              <div>
+                <strong>Prof. Neha Gupta (F202)</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Faculty &bull; Computer Science (Computer Networks)</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: STUDENT PORTAL                                                    -->
+    <!-- ========================================================================= -->
+    <section id="view-student" class="hidden">
+      <!-- Portal Navigation Tabs -->
+      <nav class="nav-tabs" id="student-nav-tabs">
+        <button class="nav-tab-btn active" data-tab="student-dashboard">📊 Dashboard & Performance</button>
+        <button class="nav-tab-btn" data-tab="student-courses">📚 Enrolled Courses</button>
+        <button class="nav-tab-btn" data-tab="student-marks">📝 Marks & Transcript</button>
+        <button class="nav-tab-btn" data-tab="student-attendance">⏱️ Attendance Tracker</button>
+        <button class="nav-tab-btn" data-tab="os-monitor">⚡ OS Socket Monitor</button>
+      </nav>
+
+      <!-- Student Tab: Dashboard & Performance -->
+      <div id="tab-student-dashboard">
+        <!-- Student Profile Card -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="badge badge-blue">STUDENT PROFILE</span>
+              <h2 style="font-size: 1.5rem; margin-top: 0.35rem;" id="student-prof-name">Aarav Sharma</h2>
+              <p style="color: var(--text-secondary); font-size: 0.85rem;" id="student-prof-details">
+                Roll No: <strong id="student-prof-id">S101</strong> • Dept: <span id="student-prof-dept">Computer Science</span> • Year <span id="student-prof-year">3</span> (Sec <span id="student-prof-sec">A</span>)
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">C Process Data Source</span>
+              <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-color);">GET /api/student/dashboard</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card accent-green">
+            <div class="metric-label">Cumulative GPA</div>
+            <div class="metric-value text-green" id="student-gpa">--</div>
+            <div class="metric-sub">Calculated on 10.0 scale from C store</div>
+          </div>
+          <div class="metric-card accent-purple">
+            <div class="metric-label">Overall Attendance</div>
+            <div class="metric-value" style="color: #c4b5fd;" id="student-overall-att">--%</div>
+            <div class="metric-sub" id="student-att-summary">-- / -- sessions attended</div>
+          </div>
+          <div class="metric-card accent-cyan">
+            <div class="metric-label">Enrolled Courses</div>
+            <div class="metric-value text-blue" id="student-courses-count">--</div>
+            <div class="metric-sub" id="student-credits-sum">-- Credit Hours</div>
+          </div>
+          <div class="metric-card accent-amber">
+            <div class="metric-label">Average Score</div>
+            <div class="metric-value text-amber" id="student-avg-score">--%</div>
+            <div class="metric-sub">Midterm + Endterm + Quizzes</div>
+          </div>
+        </div>
+
+        <!-- Academic Early-Warning: My Academic Health Card -->
+        <div class="card" id="student-academic-health-card" style="border-top: 3px solid #10b981; margin-bottom: 1.25rem;">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.2rem;">🩺</span>
+              <h3 style="margin: 0; font-size: 1.1rem;">My Academic Health</h3>
+              <span class="badge badge-blue" style="font-size: 0.68rem; letter-spacing: 0.04em;">EARLY-WARNING &amp; RECOVERY</span>
+            </div>
+            <div id="student-health-status-badge">
+              <span class="badge badge-green" style="font-size: 0.82rem; padding: 0.35rem 0.75rem;">On Track</span>
+            </div>
+          </div>
+
+          <!-- Academic Health Key Indicators Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.85rem; margin: 1rem 0;">
+            <!-- Overall Status Indicator -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Overall Status</div>
+              <div id="student-health-status-text" style="font-size: 1.15rem; font-weight: 700; color: #10b981; margin-top: 0.25rem;">On Track</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;" id="student-health-status-sub">Attendance &amp; Marks meet benchmarks</div>
+            </div>
+
+            <!-- Attendance Indicator -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Current Attendance</div>
+              <div id="student-health-att-val" style="font-size: 1.15rem; font-weight: 700; color: #c4b5fd; margin-top: 0.25rem;">--%</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;" id="student-health-att-detail">Statutory requirement: &ge;75%</div>
+            </div>
+
+            <!-- Academic Average Indicator -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Academic Average</div>
+              <div id="student-health-avg-val" style="font-size: 1.15rem; font-weight: 700; color: #fbbf24; margin-top: 0.25rem;">--%</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;" id="student-health-avg-detail">Benchmark: &lt;60% Warning, &ge;75% Good</div>
+            </div>
+
+            <!-- Attendance Eligibility Status Indicator -->
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Attendance Eligibility</div>
+              <div id="student-health-eligibility-text" style="font-size: 0.95rem; font-weight: 600; color: #10b981; margin-top: 0.25rem;">Requirement Satisfied</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem;" id="student-health-consecutive-classes">0 consecutive classes needed</div>
+            </div>
+          </div>
+
+          <!-- Warning Reasons Section -->
+          <div id="student-health-reasons-box" style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 0.85rem;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #34d399; margin-bottom: 0.35rem;" id="student-health-reasons-title">
+              📋 Academic Health Observations:
+            </div>
+            <ul id="student-health-reasons-list" style="margin: 0; padding-left: 1.25rem; font-size: 0.82rem; color: var(--text-primary); line-height: 1.5;">
+              <li>Attendance and performance records satisfy all university benchmarks.</li>
+            </ul>
+          </div>
+
+          <!-- Recommended Action Section -->
+          <div id="student-health-action-box" style="background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px; padding: 0.75rem 1rem;">
+            <div style="font-size: 0.82rem; font-weight: 600; color: #34d399; margin-bottom: 0.25rem;" id="student-health-action-title">
+              💡 Recommended Action &amp; Guidance:
+            </div>
+            <p id="student-health-recommendation-text" style="margin: 0; font-size: 0.84rem; color: var(--text-secondary); line-height: 1.4;">
+              Maintaining current consistency and study momentum.
+            </p>
+          </div>
+        </div>
+
+        <!-- Academic Performance Graphs -->
+        <div class="grid-2col">
+          <!-- Marks Visual Comparison -->
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3 style="font-size: 1rem;">📊 Subject-wise Academic Marks Breakdown</h3>
+              <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot" style="background: #3b82f6;"></span> Midterm (/50)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #8b5cf6;"></span> Endterm (/100)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> Total %</div>
+              </div>
+            </div>
+            <!-- Dynamic SVG Chart Container -->
+            <div id="student-marks-chart" style="min-height: 240px; display: flex; align-items: flex-end; gap: 1.5rem; padding: 1rem 0; border-bottom: 1px solid var(--surface-border);">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Attendance Statutory Compliance -->
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3 style="font-size: 1rem;">⏱️ Attendance Status (75% Minimum Threshold)</h3>
+              <span class="badge badge-amber">Statutory Requirement</span>
+            </div>
+            <div id="student-attendance-bars" style="display: flex; flex-direction: column; gap: 1rem; padding-top: 0.5rem;">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Tab: Enrolled Courses -->
+      <div id="tab-student-courses" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>📚 Enrolled Semester Courses</h3>
+            <span class="badge badge-blue">Active Semester 5</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                  <th>Department</th>
+                  <th>Credits</th>
+                  <th>Semester</th>
+                  <th>Instructor / Faculty</th>
+                </tr>
+              </thead>
+              <tbody id="student-courses-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Tab: Marks & Transcript -->
+      <div id="tab-student-marks" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>📝 Detailed Grade Transcript</h3>
+            <span class="badge badge-green">Computed by C Backend</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                  <th>Midterm (50)</th>
+                  <th>Endterm (100)</th>
+                  <th>Quiz (25)</th>
+                  <th>Total %</th>
+                  <th>Letter Grade</th>
+                </tr>
+              </thead>
+              <tbody id="student-marks-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Tab: Attendance Tracker -->
+      <div id="tab-student-attendance" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>⏱️ Attendance Register</h3>
+            <span class="badge badge-purple">Real-Time Sync</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
+                  <th>Attended Classes</th>
+                  <th>Total Classes</th>
+                  <th>Attendance %</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="student-attendance-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: FACULTY PORTAL                                                    -->
+    <!-- ========================================================================= -->
+    <section id="view-faculty" class="hidden">
+      <!-- Portal Navigation Tabs -->
+      <nav class="nav-tabs" id="faculty-nav-tabs">
+        <button class="nav-tab-btn active" data-tab="faculty-dashboard">📊 Faculty Dashboard</button>
+        <button class="nav-tab-btn" data-tab="faculty-early-warning">🚨 Academic Early-Warning Center</button>
+        <button class="nav-tab-btn" data-tab="faculty-courses">📖 Assigned Courses</button>
+        <button class="nav-tab-btn" data-tab="faculty-marks">📝 Gradebook (Update Marks)</button>
+        <button class="nav-tab-btn" data-tab="faculty-attendance">⏱️ Class Attendance (Update)</button>
+        <button class="nav-tab-btn" data-tab="faculty-students">👥 Student Management</button>
+        <button class="nav-tab-btn" data-tab="faculty-directory">🏛️ Faculty Directory</button>
+        <button class="nav-tab-btn" data-tab="os-monitor">⚡ OS Socket Monitor</button>
+      </nav>
+
+      <!-- Faculty Tab: Dashboard -->
+      <div id="tab-faculty-dashboard">
+        <!-- Faculty Profile Card -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="badge badge-purple">FACULTY PROFILE</span>
+              <h2 style="font-size: 1.5rem; margin-top: 0.35rem;" id="faculty-prof-name">Dr. Vikram Rao</h2>
+              <p style="color: var(--text-secondary); font-size: 0.85rem;" id="faculty-prof-details">
+                Faculty ID: <strong id="faculty-prof-id">F201</strong> • Dept: <span id="faculty-prof-dept">Computer Science</span> • Email: <span id="faculty-prof-email">vikram.rao@univ.edu</span>
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">C Process Data Source</span>
+              <div style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-color);">GET /api/faculty/dashboard</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Faculty Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card accent-cyan">
+            <div class="metric-label">Assigned Courses</div>
+            <div class="metric-value text-blue" id="faculty-courses-count">--</div>
+            <div class="metric-sub">Active teaching assignments</div>
+          </div>
+          <div class="metric-card accent-green">
+            <div class="metric-label">Enrolled Students</div>
+            <div class="metric-value text-green" id="faculty-students-count">--</div>
+            <div class="metric-sub">Across all courses taught</div>
+          </div>
+          <div class="metric-card accent-purple">
+            <div class="metric-label">Class Average Marks</div>
+            <div class="metric-value" style="color: #c4b5fd;" id="faculty-class-avg">--%</div>
+            <div class="metric-sub" id="faculty-range-marks">Highest: --% • Lowest: --%</div>
+          </div>
+          <div class="metric-card accent-amber">
+            <div class="metric-label">Class Attendance Avg</div>
+            <div class="metric-value text-amber" id="faculty-att-avg">--%</div>
+            <div class="metric-sub">Average class participation</div>
+          </div>
+        </div>
+
+        <!-- Academic Early-Warning Summary Alert Banner in Dashboard -->
+        <div class="card" id="faculty-early-warning-summary-card" style="border-left: 4px solid #f59e0b; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.2rem;">🚨</span>
+                <h3 style="margin: 0; font-size: 1.05rem;">Academic Early-Warning &amp; Recovery Alert</h3>
+                <span class="badge badge-amber" id="ew-banner-badge" style="font-size: 0.7rem;">Active Monitoring</span>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.35rem 0 0 0;" id="faculty-early-warning-quick-summary">
+                Analyzing student attendance records (&lt;75% threshold) and assessment averages (&lt;60% warning, 60–75% moderate)...
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <span id="faculty-early-warning-pills" style="display: flex; gap: 0.4rem;">
+                <span class="badge badge-red" id="pill-high-concern">0 High Concern</span>
+                <span class="badge badge-amber" id="pill-needs-attention">0 Needs Attention</span>
+                <span class="badge badge-green" id="pill-on-track">0 On Track</span>
+              </span>
+              <button class="btn btn-primary btn-sm" id="btn-goto-early-warning">🚨 Open Early-Warning Center &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Academic Operations -->
+        <div class="card">
+          <div class="card-header">
+            <h3>⚡ Faculty Operations &amp; Operations Protocol</h3>
+            <span class="badge badge-green">In-Memory Mutation in C</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            As an instructor, you can update students' marks and track daily attendance. All modifications are transmitted via POSIX TCP socket to the C process memory store, where grade calculations and attendance percentages are dynamically recomputed.
+          </p>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btn-goto-marks">📝 Open Gradebook to Update Marks</button>
+            <button class="btn btn-secondary" id="btn-goto-attendance">⏱️ Manage Class Attendance Roster</button>
+            <button class="btn btn-secondary" id="btn-goto-students">👥 Manage Students</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Assigned Courses -->
+      <div id="tab-faculty-courses" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>📖 Courses Assigned to Faculty</h3>
+            <span class="badge badge-blue">Teaching Load</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Course Code</th>
+                  <th>Course Title</th>
+                  <th>Department</th>
+                  <th>Credits</th>
+                  <th>Semester</th>
+                  <th>Enrolled Students</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-courses-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Gradebook & Update Marks -->
+      <div id="tab-faculty-marks" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>📝 Course Gradebook — Student Marks Management</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="filter-marks-input" class="form-input" placeholder="🔍 Search student or course..." style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.82rem;" />
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Click <strong>"Update Marks"</strong> on any student record to submit new scores to the C server socket (<code>POST /api/marks/update</code>).
+          </p>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Course</th>
+                  <th>Midterm (50)</th>
+                  <th>Endterm (100)</th>
+                  <th>Quiz (25)</th>
+                  <th>Total %</th>
+                  <th>Grade</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-marks-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Class Attendance -->
+      <div id="tab-faculty-attendance" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3>⏱️ Class Attendance Register</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="filter-att-input" class="form-input" placeholder="🔍 Search student..." style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.82rem;" />
+            </div>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Use <strong>"+1 Present"</strong> to instantly increment attendance by 1 over socket, or click <strong>"Edit"</strong> to update full counts.
+          </p>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Student Name</th>
+                  <th>Course</th>
+                  <th>Attended</th>
+                  <th>Total Classes</th>
+                  <th>Percentage</th>
+                  <th>Status</th>
+                  <th>Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-attendance-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Academic Early-Warning Center -->
+      <div id="tab-faculty-early-warning" class="hidden">
+        <div class="card" style="border-top: 3px solid #ef4444; margin-bottom: 1.25rem;">
+          <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.25rem;">🚨</span>
+                <h3 style="margin: 0; font-size: 1.15rem;">Academic Early-Warning Center</h3>
+              </div>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+                Rule-based academic early intervention identifying students requiring support based on actual attendance (&lt;75%) and evaluation records (&lt;60% &amp; 60–75%).
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <span class="badge badge-red" id="cnt-high-concern">0 High Concern</span>
+              <span class="badge badge-amber" id="cnt-needs-attention">0 Needs Attention</span>
+              <span class="badge badge-green" id="cnt-on-track">0 On Track</span>
+            </div>
+          </div>
+
+          <!-- Controls: Scope, Filters & Search Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--surface-border);">
+            <!-- Filter Buttons -->
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;" id="early-warning-filter-buttons">
+              <button class="btn btn-sm btn-primary filter-ew-btn active" data-filter="all">All Students (<span id="ew-count-all">0</span>)</button>
+              <button class="btn btn-sm btn-secondary filter-ew-btn" data-filter="high">🚨 High Concern (<span id="ew-count-high">0</span>)</button>
+              <button class="btn btn-sm btn-secondary filter-ew-btn" data-filter="attention">⚠️ Needs Attention (<span id="ew-count-attention">0</span>)</button>
+              <button class="btn btn-sm btn-secondary filter-ew-btn" data-filter="ontrack">✅ On Track (<span id="ew-count-ontrack">0</span>)</button>
+            </div>
+
+            <!-- Search input -->
+            <div style="display: flex; gap: 0.5rem; align-items: center; min-width: 280px; flex: 1; max-width: 400px;">
+              <input type="text" id="early-warning-search-input" class="form-input" placeholder="🔍 Search student ID or name..." style="width: 100%; font-size: 0.85rem;" />
+              <button class="btn btn-secondary btn-sm" id="btn-early-warning-refresh" title="Refresh records from C server">🔄</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Early Warning Roster Table -->
+        <div class="card">
+          <div class="card-header">
+            <h3>📋 Student Risk Evaluation &amp; Recovery Roster</h3>
+            <span class="badge badge-blue" id="ew-displaying-count">Showing 0 students</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="early-warning-table">
+              <thead>
+                <tr>
+                  <th style="min-width: 95px;">Student ID</th>
+                  <th style="min-width: 140px;">Student Name</th>
+                  <th style="min-width: 150px;">Department &amp; Year</th>
+                  <th style="min-width: 130px;">Attendance %</th>
+                  <th style="min-width: 125px;">Academic Avg</th>
+                  <th style="min-width: 140px;">Risk Status</th>
+                  <th style="min-width: 220px;">Reason for Flag</th>
+                  <th style="min-width: 220px;">Recommended Action</th>
+                  <th style="min-width: 130px; text-align: center;">Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="early-warning-tbody">
+                <!-- Populated dynamically from C server data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Student Management -->
+      <div id="tab-faculty-students" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>👥 Student Management</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                Manage student records backed by C POSIX memory-mapped storage (<code>university.dat</code>).
+              </p>
+            </div>
+            <button class="btn btn-primary" id="btn-open-add-student">➕ Add New Student</button>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+            <div style="flex: 1; min-width: 250px;">
+              <input type="text" id="faculty-student-search-input" class="form-input" placeholder="🔍 Search by Student ID (e.g. S101) or Name..." style="width: 100%;" />
+            </div>
+            <button class="btn btn-secondary" id="btn-faculty-student-search">Search</button>
+            <button class="btn btn-secondary" id="btn-faculty-student-reload">🔄 Reload All</button>
+          </div>
+
+          <!-- Alert Notification Container -->
+          <div id="alert-faculty-student" class="hidden" style="padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.82rem;"></div>
+
+          <!-- Students Table -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Full Name</th>
+                  <th>Email Address</th>
+                  <th>Department</th>
+                  <th>Year</th>
+                  <th>Section</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-students-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Tab: Faculty Directory -->
+      <div id="tab-faculty-directory" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>🏛️ Faculty Directory</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                Browse academic faculty profiles and departments across the university.
+              </p>
+            </div>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+            <div style="flex: 1; min-width: 250px;">
+              <input type="text" id="faculty-search-input" class="form-input" placeholder="🔍 Search faculty by ID (e.g. F201) or Name..." style="width: 100%;" />
+            </div>
+            <button class="btn btn-secondary" id="btn-faculty-search">Search</button>
+            <button class="btn btn-secondary" id="btn-faculty-reload">🔄 Reload All</button>
+          </div>
+
+          <!-- Alert Notification Container -->
+          <div id="alert-faculty-dir" class="hidden" style="padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.82rem;"></div>
+
+          <!-- Faculty Table -->
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Faculty ID</th>
+                  <th>Full Name</th>
+                  <th>Email Address</th>
+                  <th>Department</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-directory-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: OS SOCKET & CONCURRENCY MONITOR                                   -->
+    <!-- ========================================================================= -->
+    <section id="tab-os-monitor" class="hidden">
+      
+      <!-- 1. SERVER STATUS & LINUX PROCESS ENVIRONMENT -->
+      <div class="card" style="margin-bottom: 1.25rem; border-top: 3px solid var(--success-color);">
+        <div class="card-header">
+          <h3>🖥️ Server Status & Linux Process Environment</h3>
+          <span class="badge badge-green" id="badge-server-state">ONLINE</span>
+        </div>
+        <div class="metrics-grid" style="margin-bottom: 0.75rem;">
+          <div class="metric-card accent-green">
+            <div class="metric-label">Server State</div>
+            <div class="metric-value text-green" id="metric-status">ONLINE</div>
+            <div class="metric-sub" id="metric-port">Port: 3000 (POSIX AF_INET)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Server PID</div>
+            <div class="metric-value" id="metric-pid">-</div>
+            <div class="metric-sub">Linux Process Identifier</div>
+          </div>
+          <div class="metric-card accent-cyan">
+            <div class="metric-label">Server Uptime</div>
+            <div class="metric-value text-blue" id="metric-uptime">0s</div>
+            <div class="metric-sub" id="metric-uptime-sub">Since process startup</div>
+          </div>
+          <div class="metric-card accent-purple">
+            <div class="metric-label">Process Threads</div>
+            <div class="metric-value" style="color: #c4b5fd;" id="metric-threads">6 Threads</div>
+            <div class="metric-sub">1 Main + 4 Workers + 1 Disp</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; background: #0d1527; padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--surface-border); font-size: 0.82rem;">
+          <div><span style="color: var(--text-muted);">Process State:</span> <strong id="srv-proc-state" style="color: var(--success-color);">S (Sleeping / Interruptible)</strong></div>
+          <div><span style="color: var(--text-muted);">Resident Memory (RSS):</span> <strong id="srv-rss" style="color: var(--text-primary); font-family: var(--font-mono);">-- KB</strong></div>
+          <div><span style="color: var(--text-muted);">Virtual Memory (VSize):</span> <strong id="srv-vsize" style="color: var(--text-primary); font-family: var(--font-mono);">-- KB</strong></div>
+          <div><span style="color: var(--text-muted);">Open File Descriptors:</span> <strong id="srv-fds" style="color: var(--accent-color); font-family: var(--font-mono);">--</strong></div>
+          <div><span style="color: var(--text-muted);">CPU User / Kernel Ticks:</span> <strong id="srv-cpu-ticks" style="color: var(--text-primary); font-family: var(--font-mono);">-- / --</strong></div>
+          <div><span style="color: var(--text-muted);">Total CPU Time:</span> <strong id="srv-cpu-time" style="color: var(--warning-color); font-family: var(--font-mono);">0.00s</strong></div>
+        </div>
+      </div>
+
+      <!-- 2. WORKER THREADS (4 FIXED WORKER POOL) -->
+      <div class="card" style="margin-bottom: 1.25rem; border-top: 3px solid var(--primary-color);">
+        <div class="card-header">
+          <div>
+            <h3>🧵 Worker Threads (4 Fixed Worker Pool)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.15rem;">
+              POSIX Thread Pool (`pthread_create`, `pthread_join`) &bull; <strong id="aggregate-workers" style="color: var(--primary-color);">Active Workers: 0 / 4</strong>
+            </p>
+          </div>
+          <span class="badge badge-purple" id="badge-thread-pool">4 Worker Threads</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.85rem;" id="workers-container">
+          <!-- Worker 0 -->
+          <div class="metric-card" id="worker-card-0" style="background: #0d1527; border: 1px solid var(--surface-border); padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <strong style="color: var(--primary-color); font-size: 0.95rem;">Worker 0</strong>
+              <span class="badge badge-blue" id="w0-state">Idle</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Requests Completed: <strong style="color: var(--text-primary);" id="w0-tasks">0</strong></div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.3rem;">
+              Activity: <span style="font-family: var(--font-mono); color: #93c5fd;" id="w0-act">Waiting on cond_not_empty</span>
+            </div>
+          </div>
+          <!-- Worker 1 -->
+          <div class="metric-card" id="worker-card-1" style="background: #0d1527; border: 1px solid var(--surface-border); padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <strong style="color: var(--primary-color); font-size: 0.95rem;">Worker 1</strong>
+              <span class="badge badge-blue" id="w1-state">Idle</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Requests Completed: <strong style="color: var(--text-primary);" id="w1-tasks">0</strong></div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.3rem;">
+              Activity: <span style="font-family: var(--font-mono); color: #93c5fd;" id="w1-act">Waiting on cond_not_empty</span>
+            </div>
+          </div>
+          <!-- Worker 2 -->
+          <div class="metric-card" id="worker-card-2" style="background: #0d1527; border: 1px solid var(--surface-border); padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <strong style="color: var(--primary-color); font-size: 0.95rem;">Worker 2</strong>
+              <span class="badge badge-blue" id="w2-state">Idle</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Requests Completed: <strong style="color: var(--text-primary);" id="w2-tasks">0</strong></div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.3rem;">
+              Activity: <span style="font-family: var(--font-mono); color: #93c5fd;" id="w2-act">Waiting on cond_not_empty</span>
+            </div>
+          </div>
+          <!-- Worker 3 -->
+          <div class="metric-card" id="worker-card-3" style="background: #0d1527; border: 1px solid var(--surface-border); padding: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <strong style="color: var(--primary-color); font-size: 0.95rem;">Worker 3</strong>
+              <span class="badge badge-blue" id="w3-state">Idle</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Requests Completed: <strong style="color: var(--text-primary);" id="w3-tasks">0</strong></div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.3rem;">
+              Activity: <span style="font-family: var(--font-mono); color: #93c5fd;" id="w3-act">Waiting on cond_not_empty</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. REQUEST QUEUE + RESPONSE QUEUE + SEMAPHORE -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+        
+        <!-- Request Queue Card -->
+        <div class="card" id="card-req-q" style="border-top: 3px solid #8b5cf6;">
+          <div class="card-header">
+            <h3>📥 Request Queue</h3>
+            <span class="badge badge-purple" id="badge-req-q">0 / 32</span>
+          </div>
+          <div style="font-size: 1.35rem; font-weight: bold; color: #c4b5fd; margin: 0.4rem 0;" id="txt-req-q-display">
+            Request Queue: 0 / 32
+          </div>
+          <div style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+            <div id="bar-req-q" style="background: #a855f7; height: 100%; width: 0%; transition: width 0.15s ease;"></div>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4; margin: 0;">
+            Bounded circular ring buffer &bull; <code>pthread_mutex_t</code> + <code>cond_not_empty</code> / <code>cond_not_full</code>.
+          </p>
+        </div>
+
+        <!-- Response Queue Card -->
+        <div class="card" id="card-resp-q" style="border-top: 3px solid #06b6d4;">
+          <div class="card-header">
+            <h3>📤 Response Queue</h3>
+            <span class="badge badge-cyan" id="badge-resp-q">0 / 32</span>
+          </div>
+          <div style="font-size: 1.35rem; font-weight: bold; color: #67e8f9; margin: 0.4rem 0;" id="txt-resp-q-display">
+            Response Queue: 0 / 32
+          </div>
+          <div style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+            <div id="bar-resp-q" style="background: #06b6d4; height: 100%; width: 0%; transition: width 0.15s ease;"></div>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4; margin: 0;">
+            Bounded buffer &bull; Dedicated consumer dispatcher thread handles non-blocking network socket writes.
+          </p>
+        </div>
+
+        <!-- Counting Semaphore Card -->
+        <div class="card" id="card-sem" style="border-top: 3px solid #10b981;">
+          <div class="card-header">
+            <h3>🚦 Database Semaphore</h3>
+            <span class="badge badge-green" id="badge-sem-slots">2 / 2 Slots</span>
+          </div>
+          <div style="font-size: 1.35rem; font-weight: bold; color: #6ee7b7; margin: 0.4rem 0;" id="txt-sem-display">
+            Database Access Slots: 2 / 2
+          </div>
+          <div style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+            <div id="bar-sem-slots" style="background: #10b981; height: 100%; width: 100%; transition: width 0.15s ease;"></div>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.4; margin: 0;">
+            Counting semaphore (<code>sem_t</code>) &bull; Limits concurrent academic data access to max 2 workers via <code>sem_wait()</code> / <code>sem_post()</code>.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- 4. MEMORY-MAPPED STORAGE + POSIX SIGNALS -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+        
+        <!-- Memory Mapping Card -->
+        <div class="card" id="card-mmap-info" style="border-top: 3px solid #3b82f6;">
+          <div class="card-header">
+            <h3>💾 Memory-Mapped Storage (mmap)</h3>
+            <span class="badge badge-green" id="badge-mmap-status">ACTIVE</span>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+            File: <strong style="color: var(--text-primary); font-family: var(--font-mono);" id="mmap-path">university.dat</strong> &bull; Status: <strong style="color: var(--success-color);">ACTIVE</strong>
+          </div>
+          <table style="width: 100%; font-size: 0.8rem; color: var(--text-secondary); border-collapse: collapse; margin-bottom: 0.75rem;">
+            <tr>
+              <td style="padding: 0.25rem 0;">Mapped Size:</td>
+              <td style="text-align: right; color: var(--text-primary); font-family: var(--font-mono);" id="mmap-size">44,640 bytes</td>
+            </tr>
+            <tr>
+              <td style="padding: 0.25rem 0;">Format & Magic:</td>
+              <td style="text-align: right; color: var(--text-primary); font-family: var(--font-mono);" id="mmap-format">Magic 0x554E4956 (v1)</td>
+            </tr>
+            <tr>
+              <td style="padding: 0.25rem 0;">Transaction Commits:</td>
+              <td style="text-align: right; color: var(--success-color); font-weight: bold;" id="mmap-txs">0 commits</td>
+            </tr>
+            <tr>
+              <td style="padding: 0.25rem 0;">Last Synchronization:</td>
+              <td style="text-align: right; color: var(--text-muted); font-size: 0.76rem;" id="mmap-last-sync">Startup</td>
+            </tr>
+          </table>
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-secondary btn-sm" id="btn-mmap-refresh">🔄 Refresh</button>
+            <button class="btn btn-primary btn-sm" id="btn-mmap-sync">💾 Trigger msync()</button>
+          </div>
+        </div>
+
+        <!-- POSIX Signals Card -->
+        <div class="card" id="card-signals" style="border-top: 3px solid #ef4444;">
+          <div class="card-header">
+            <h3>📡 POSIX Signal Architecture</h3>
+            <span class="badge badge-purple" id="badge-config-reloads">Reloads: 0</span>
+          </div>
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); margin-bottom: 0.6rem; font-size: 0.8rem;">
+            <div style="margin-bottom: 0.3rem;">
+              <strong style="color: #c4b5fd;">SIGHUP</strong> ⟶ <span style="color: var(--text-secondary);">Configuration Reload (reloads server.conf without process restart)</span>
+            </div>
+            <div>
+              <strong style="color: #fca5a5;">SIGINT / SIGTERM</strong> ⟶ <span style="color: var(--text-secondary);">Graceful Shutdown (drains queues, msync, munmap, exits 0)</span>
+            </div>
+          </div>
+          <table style="width: 100%; font-size: 0.8rem; color: var(--text-secondary); border-collapse: collapse; margin-bottom: 0.75rem;">
+            <tr>
+              <td style="padding: 0.2rem 0;">Configuration Reloads:</td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: bold;" id="cfg-reloads-count">0</td>
+            </tr>
+            <tr>
+              <td style="padding: 0.2rem 0;">Last Reload Time:</td>
+              <td style="text-align: right; color: var(--text-muted); font-size: 0.76rem;" id="cfg-last-time">Startup</td>
+            </tr>
+          </table>
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-primary btn-sm" id="btn-sighup-reload">⚡ Send SIGHUP Signal</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. CONCURRENCY & SYNCHRONIZATION CONCEPTS (COMPACT) -->
+      <div class="card" id="card-sync-concepts" style="margin-bottom: 1.25rem; border-top: 3px solid #f59e0b;">
+        <div class="card-header">
+          <h3>🔒 Concurrency & Synchronization</h3>
+          <span class="badge badge-amber">POSIX Primitives</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+          Mutexes protect shared data, condition variables coordinate waiting workers, and the semaphore limits concurrent access to academic data:
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem;">
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--surface-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Request Queue</div>
+            <strong style="color: #c4b5fd; font-size: 0.82rem; font-family: var(--font-mono);">Mutex + Condition Variable</strong>
+          </div>
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--surface-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Academic Data</div>
+            <strong style="color: #93c5fd; font-size: 0.82rem; font-family: var(--font-mono);">Mutex (g_data_mutex)</strong>
+          </div>
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--surface-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Database Access</div>
+            <strong style="color: #6ee7b7; font-size: 0.82rem; font-family: var(--font-mono);">Counting Semaphore (2 slots)</strong>
+          </div>
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--surface-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Response Queue</div>
+            <strong style="color: #67e8f9; font-size: 0.82rem; font-family: var(--font-mono);">Mutex + Condition Variable</strong>
+          </div>
+          <div style="background: #0d1527; padding: 0.6rem 0.75rem; border-radius: 6px; border: 1px solid var(--surface-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Logging Subsystem</div>
+            <strong style="color: #fde047; font-size: 0.82rem; font-family: var(--font-mono);">Mutex (g_logger_mutex)</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. COMPACT ARCHITECTURE / EXECUTION PIPELINE -->
+      <div class="card" style="margin-bottom: 1.25rem; border-top: 3px solid #3b82f6;">
+        <div class="card-header">
+          <h3>⚡ Request Execution Pipeline</h3>
+          <span class="badge badge-blue">OS Lifecycle</span>
+        </div>
+        <!-- Compact Horizontal Pipeline Flow -->
+        <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; justify-content: center; background: #070d19; padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--surface-border); font-size: 0.76rem;">
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #93c5fd;">Browser</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #38bdf8;">TCP Socket (3000)</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #c4b5fd;">Request Queue (32)</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #6ee7b7;">Worker Thread (0–3)</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #fde047;">Semaphore (2)</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #fca5a5;">Mutex</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #93c5fd;">mmap Database</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #67e8f9;">Response Queue (32)</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #fbbf24;">Dispatcher Thread</div>
+          <div style="color: var(--text-muted); font-weight: bold;">⟶</div>
+          <div style="background: #1e293b; padding: 0.35rem 0.65rem; border-radius: 4px; font-weight: bold; color: #93c5fd;">Browser</div>
+        </div>
+      </div>
+
+      <!-- 7. LIVE CONCURRENCY DEMONSTRATION & TESTER -->
+      <div class="card" style="margin-bottom: 1.25rem; border-top: 3px solid var(--primary-color);">
+        <div class="card-header">
+          <h3>🚀 Live Concurrency Demonstration (POSIX Worker Pool)</h3>
+          <span class="badge badge-blue" id="concurrency-badge">Interactive Test</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.75rem;">
+          Dispatch simultaneous asynchronous HTTP bursts to demonstrate request queuing and multi-worker execution:
+        </p>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <button class="btn btn-primary" id="btn-burst-20" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 0.5rem 0.85rem; font-size: 0.82rem;">
+            🚀 Fire 20 Concurrent Requests
+          </button>
+          <button class="btn btn-primary" id="btn-burst-32" style="background: linear-gradient(135deg, #8b5cf6, #ec4899); padding: 0.5rem 0.85rem; font-size: 0.82rem;">
+            ⚡ Fire 32 Concurrent Requests
+          </button>
+          <button class="btn btn-primary" id="btn-burst-50" style="background: linear-gradient(135deg, #ef4444, #f59e0b); padding: 0.5rem 0.85rem; font-size: 0.82rem;">
+            🔥 Fire 50 Concurrent Requests
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-ping">📡 GET /api/status</button>
+          <button class="btn btn-secondary btn-sm" id="btn-test-health">🏥 GET /api/health</button>
+          <button class="btn btn-secondary btn-sm" id="btn-sample-data">📦 GET /api/sample-data</button>
+          <button class="btn btn-secondary btn-sm" id="btn-echo">🔁 POST /api/echo</button>
+        </div>
+
+        <!-- Concurrency Results Telemetry Panel -->
+        <div id="concurrency-metrics-panel" style="display: none; background: #070d19; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--surface-border); margin-bottom: 0.85rem;">
+          <h4 style="font-size: 0.85rem; margin-bottom: 0.6rem; color: var(--primary-color);">📊 Concurrency Burst Telemetry</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 0.6rem;">
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Launched</div>
+              <div style="font-size: 1rem; font-weight: bold; color: var(--text-primary);" id="c-metric-launched">0</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Successful</div>
+              <div style="font-size: 1rem; font-weight: bold; color: var(--success-color);" id="c-metric-success">0</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Failed</div>
+              <div style="font-size: 1rem; font-weight: bold; color: var(--danger-color);" id="c-metric-failed">0</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Total Time</div>
+              <div style="font-size: 1rem; font-weight: bold; color: var(--text-primary);" id="c-metric-time">0 ms</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Avg Latency</div>
+              <div style="font-size: 1rem; font-weight: bold; color: #93c5fd;" id="c-metric-avglat">0 ms</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Max Latency</div>
+              <div style="font-size: 1rem; font-weight: bold; color: #fde047;" id="c-metric-maxlat">0 ms</div>
+            </div>
+            <div style="background: #0d1527; padding: 0.4rem 0.6rem; border-radius: 4px;">
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Throughput</div>
+              <div style="font-size: 1rem; font-weight: bold; color: var(--success-color);" id="c-metric-tps">0 req/s</div>
+            </div>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary);" id="c-worker-distribution">
+            Worker Distribution: Worker 0: 0 | Worker 1: 0 | Worker 2: 0 | Worker 3: 0
+          </div>
+        </div>
+
+        <!-- Terminal Output Window -->
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <span style="color: #ef4444;">●</span>
+            <span style="color: #f59e0b;">●</span>
+            <span style="color: #10b981;">●</span>
+            <span style="margin-left: 0.5rem; font-size: 0.76rem;">POSIX Worker Socket Response Stream</span>
+            <span style="margin-left: auto; font-size: 0.76rem;" id="terminal-latency">Idle</span>
+          </div>
+          <div class="terminal-body" id="terminal-output" style="max-height: 160px; overflow-y: auto;">// Ready. Click a concurrency burst test to observe POSIX worker dispatching.</div>
+        </div>
+      </div>
+
+      <!-- 8. COMPACT SERVER LOGS -->
+      <div class="card" style="margin-bottom: 1.25rem;">
+        <div class="card-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h3>📜 Server Logs</h3>
+            <span style="font-size: 0.75rem; color: var(--success-color);">✓ server.log</span>
+            <span style="font-size: 0.75rem; color: var(--success-color);">✓ transactions.log</span>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button class="btn btn-secondary btn-sm active" id="tab-log-server">View server.log</button>
+            <button class="btn btn-secondary btn-sm" id="tab-log-tx">View transactions.log</button>
+            <button class="btn btn-secondary btn-sm" id="btn-refresh-logs">🔄 Refresh Logs</button>
+          </div>
+        </div>
+        <div class="terminal-window" style="margin-top: 0.4rem;">
+          <div class="terminal-body" id="log-stream-output" style="max-height: 140px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.76rem;">
+            // Thread-safe log records synchronized via g_logger_mutex...
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: UPDATE MARKS                                                       -->
+  <!-- ========================================================================= -->
+  <div class="modal-backdrop hidden" id="modal-marks">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📝 Update Student Marks</h3>
+        <button class="modal-close" id="modal-marks-close">&times;</button>
+      </div>
+      <form id="form-update-marks">
+        <input type="hidden" id="edit-marks-student-id" />
+        <input type="hidden" id="edit-marks-course-id" />
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">Student: <strong id="edit-marks-student-name" style="color: var(--text-primary);">--</strong></div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">Course: <strong id="edit-marks-course-name" style="color: var(--text-primary);">--</strong></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-midterm">Midterm Examination (Max 50)</label>
+          <input type="number" id="edit-midterm" class="form-input" min="0" max="50" step="0.5" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-endterm">Endterm Examination (Max 100)</label>
+          <input type="number" id="edit-endterm" class="form-input" min="0" max="100" step="0.5" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-quiz">Quizzes & Assignments (Max 25)</label>
+          <input type="number" id="edit-quiz" class="form-input" min="0" max="25" step="0.5" required />
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" id="modal-marks-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to C Memory Store</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: UPDATE ATTENDANCE                                                  -->
+  <!-- ========================================================================= -->
+  <div class="modal-backdrop hidden" id="modal-attendance">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⏱️ Update Student Attendance</h3>
+        <button class="modal-close" id="modal-att-close">&times;</button>
+      </div>
+      <form id="form-update-attendance">
+        <input type="hidden" id="edit-att-student-id" />
+        <input type="hidden" id="edit-att-course-id" />
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">Student: <strong id="edit-att-student-name" style="color: var(--text-primary);">--</strong></div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary);">Course: <strong id="edit-att-course-name" style="color: var(--text-primary);">--</strong></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-attended">Classes Attended</label>
+          <input type="number" id="edit-attended" class="form-input" min="0" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="edit-total-classes">Total Classes Conducted</label>
+          <input type="number" id="edit-total-classes" class="form-input" min="1" required />
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-secondary" id="modal-att-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to C Memory Store</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD STUDENT -->
+  <div id="modal-add-student" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>➕ Add New Student</h3>
+        <button class="btn-close" id="btn-close-add-student-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Enter student details to commit record to C server memory map (<code>POST /api/student/create</code>).
+        </p>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Student ID *</label>
+          <input type="text" id="add-student-id" class="form-input" placeholder="e.g. S105" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="add-student-name" class="form-input" placeholder="e.g. Rahul Kumar" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="add-student-email" class="form-input" placeholder="e.g. rahul.kumar@univ.edu" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Department *</label>
+          <input type="text" id="add-student-dept" class="form-input" placeholder="e.g. Computer Science" required />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Academic Year *</label>
+            <input type="number" id="add-student-year" class="form-input" placeholder="e.g. 3" min="1" max="5" value="3" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Section *</label>
+            <input type="text" id="add-student-section" class="form-input" placeholder="e.g. A" maxlength="2" value="A" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Portal Password</label>
+          <input type="password" id="add-student-pass" class="form-input" placeholder="Default: pass123" />
+        </div>
+        <div id="add-student-error" class="hidden text-danger" style="font-size: 0.8rem; margin-bottom: 0.5rem;"></div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+        <button class="btn btn-secondary" id="btn-cancel-add-student">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-add-student">Create Student</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT STUDENT -->
+  <div id="modal-edit-student" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>✏️ Edit Student Details</h3>
+        <button class="btn-close" id="btn-close-edit-student-modal">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Modify student details and synchronize via <code>POST /api/student/update</code>.
+        </p>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Student ID (Immutable Identifier)</label>
+          <input type="text" id="edit-student-id" class="form-input" disabled style="background: rgba(255,255,255,0.05);" />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="edit-student-name" class="form-input" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="edit-student-email" class="form-input" required />
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">Department *</label>
+          <input type="text" id="edit-student-dept" class="form-input" required />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Academic Year *</label>
+            <input type="number" id="edit-student-year" class="form-input" min="1" max="5" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Section *</label>
+            <input type="text" id="edit-student-section" class="form-input" maxlength="2" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label">New Password (leave blank to keep current)</label>
+          <input type="password" id="edit-student-pass" class="form-input" placeholder="Leave blank to preserve current" />
+        </div>
+        <div id="edit-student-error" class="hidden text-danger" style="font-size: 0.8rem; margin-bottom: 0.5rem;"></div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+        <button class="btn btn-secondary" id="btn-cancel-edit-student">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-edit-student">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Application Controller -->
+  <script src="/js/app.js"></script>
+</body>
+</html>

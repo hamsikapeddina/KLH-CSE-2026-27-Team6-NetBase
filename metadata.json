@@ -1,0 +1,6 @@
+{
+  "name": "University ERP — Concurrent Client-Server System",
+  "description": "Operating Systems academic project demonstrating concurrent client-server architecture in C with POSIX threads, synchronization, and OS monitoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,35 @@
+# University ERP — Faculty Requirement Traceability Matrix
+
+This document maps every requirement from the Operating Systems faculty project specification to its concrete C implementation, source files, automated test verification, and live demonstration method.
+
+---
+
+## 1. Traceability Matrix
+
+| Faculty Requirement | Implementation Details | Source Files | Test Suite Verification | Live UI / CLI Demonstration |
+| :--- | :--- | :--- | :--- | :--- |
+| **Multiple Concurrent Clients** | Non-blocking TCP IPv4 socket listener (`AF_INET`, `SOCK_STREAM`, `SO_REUSEADDR`, `bind`, `listen`, `accept`). Supports high-throughput concurrent socket handshakes. | `server/src/main.c`<br>`server/include/server.h` | `tests/test_phase1.sh` (Test 1-3)<br>`tests/test_phase5.sh` (Test 1, 4) | Fire 20, 32, or 50 concurrent requests simultaneously in the OS Monitor Concurrency tab. |
+| **Worker Thread Pool** | Fixed pool of 4 POSIX worker threads created at boot (`pthread_create`, `pthread_join`). Eliminates thread creation/destruction overhead per HTTP request. | `server/src/pool.c`<br>`server/include/pool.h` | `tests/test_concurrency.sh` (Test 1, 3)<br>`tests/test_phase5.sh` (Test 4) | Observe 4 distinct worker status indicators (`Worker 0-3`) with real-time task counts and busy/idle states in OS Monitor. |
+| **Bounded Request Queue** | Circular FIFO ring buffer (capacity: 32 requests) buffering incoming client connections (`int client_fd`, IP, port, timestamp) between main accept thread and workers. | `server/src/pool.c`<br>`server/include/pool.h` | `tests/test_concurrency.sh` (Test 2)<br>`tests/test_phase4.sh` (Test 2) | Stress burst to 32 concurrent requests; observe queue count rise and drain in real-time telemetry. |
+| **Bounded Response Queue & Dispatcher** | Dedicated secondary circular FIFO queue (capacity: 32 responses) with a dedicated consumer dispatcher thread (`response_dispatcher_thread`) that sends HTTP headers/payloads and manages `close(fd)`. | `server/src/response_queue.c`<br>`server/include/response_queue.h` | `tests/test_phase4.sh` (Test 2)<br>`tests/test_phase5.sh` (Test 4) | Observe decoupled response delivery where worker execution latency is independent of client socket network write time. |
+| **Mutual Exclusion (Mutexes)** | POSIX Mutexes (`pthread_mutex_t`) protecting shared state: `g_pool.queue.mutex` (request ring buffer), `g_stats_mutex` (telemetry counters), `g_data_mutex` (academic store), `g_logger_mutex` (file I/O), and `g_response_queue.mutex`. | `server/src/pool.c`<br>`server/src/data.c`<br>`server/src/logger.c`<br>`server/src/response_queue.c` | `tests/test_concurrency.sh` (Test 4, 5)<br>`tests/test_phase5.sh` (Test 3) | Rapid concurrent marks and attendance updates executed simultaneously without race conditions or data corruption. |
+| **Condition Variables** | POSIX Condition Variables (`pthread_cond_t`) coordinating producer-consumer synchronization (`cond_not_empty`, `cond_not_full`) wrapped in defensive `while` loops to guard against spurious wakeups. | `server/src/pool.c`<br>`server/src/response_queue.c` | `tests/test_concurrency.sh` (Test 2, 8)<br>`tests/test_phase4.sh` (Test 2) | Idle workers sleep with 0% CPU utilization (`pthread_cond_wait`); wake up instantaneously upon incoming requests (`pthread_cond_signal`). |
+| **Counting Semaphore** | POSIX Counting Semaphore (`sem_t g_data_access_sem`, initialized with count = 2 via `sem_init`). Strictly limits simultaneous academic data queries/mutations to 2 concurrent worker slots. | `server/src/pool.c`<br>`server/src/http.c` | `tests/test_concurrency.sh` (Test 6)<br>`tests/test_phase5.sh` (Test 2) | Live telemetry displays "Academic Data Access Slots: 2/2". Server logs show `[SEMAPHORE] Acquired slot (sem_wait)` and `[SEMAPHORE] Released slot (sem_post)`. |
+| **Academic ERP Workflows (CRUD)** | Complete University ERP workflows: Student records, faculty gradebooks, course catalogs, examination marks (Midterm, Endterm, Quizzes), and attendance rosters with auto-calculated GPA and percentages. | `server/src/data.c`<br>`server/src/http.c`<br>`server/src/mmap_data.c` | `tests/test_phase2.sh` (Test 1-7)<br>`tests/test_phase5.sh` (Test 3) | Student Dashboard, Faculty Gradebook Modal, Attendance Roster Modal, and live interactive CRUD Management panel (Create, Search, Edit, Delete). |
+| **Memory-Mapped Storage (mmap & msync)** | Academic data structure (`MmapUniversityStore`) mapped into virtual memory using `mmap(MAP_SHARED)`. Mutations written directly to mapped pages and synchronized to disk (`university.dat`) via `msync()`. | `server/src/mmap_data.c`<br>`server/include/mmap_data.h` | `tests/test_phase4.sh` (Test 1, 6)<br>`tests/test_phase5.sh` (Test 3) | Modify marks in browser -> restart C server (`kill -TERM && make run`) -> reload portal -> verify modified marks persist identically. |
+| **Thread-Safe Logging** | Dual-file structured append-only logger protected by `g_logger_mutex`: `server.log` (operational events, connection lifecycle, errors) and `transactions.log` (audit trail with timestamps, worker IDs, latency, and status). | `server/src/logger.c`<br>`server/include/logger.h` | `tests/test_phase4.sh` (Test 5)<br>`tests/test_phase5.sh` (Test 3) | Live Log Streamer tab in OS Monitor displaying live colorized entries from both `server.log` and `transactions.log`. |
+| **Linux Signal Handling (SIGHUP, SIGTERM, SIGINT)** | `sigaction()` registration: `SIGTERM`/`SIGINT` initiates clean pipeline drain and graceful shutdown. `SIGHUP` dynamically reloads `server.conf` at runtime without restarting the process. | `server/src/main.c`<br>`server/src/config.c` | `tests/test_phase4.sh` (Test 4, 7)<br>`tests/test_phase5.sh` (Test 5, 6) | Click "Trigger SIGHUP (Live Reload)" in OS Monitor or run `kill -HUP <PID>`. Observe reload counter increment live in UI header without disconnecting clients. |
+| **Linux /proc Process Monitoring** | Real-time extraction of genuine OS process telemetry by parsing `/proc/self/stat`, `/proc/self/fd`, and `/proc/uptime`. Extracts RSS memory, virtual size, CPU user/kernel ticks, open FDs, and process state. | `server/src/proc_monitor.c`<br>`server/include/proc_monitor.h` | `tests/test_phase4.sh` (Test 3)<br>`tests/test_phase5.sh` (Test 2) | OS Monitor header and metrics grid showing live RSS memory (KB), VSize (KB), CPU ticks, Open FDs count, and Process State `S (Sleeping / Interruptible)`. |
+
+---
+
+## 2. Verification Summary Across All Test Suites
+
+All 36 automated integration tests pass with 100% success across all 5 project phases:
+
+- **Phase 1 (Basic Server & Protocol)**: 7/7 tests passed (`tests/test_phase1.sh`)
+- **Phase 2 (Academic Data & Authentication)**: 8/8 tests passed (`tests/test_phase2.sh`)
+- **Phase 3 (Thread Pool & Concurrency)**: 8/8 tests passed (`tests/test_concurrency.sh`)
+- **Phase 4 (mmap, SIGHUP, /proc, Dual Queues)**: 7/7 tests passed (`tests/test_phase4.sh`)
+- **Phase 5 (OS Telemetry, Full CRUD, 50-Req Burst)**: 6/6 tests passed (`tests/test_phase5.sh`)
+- **Total**: 36 / 36 Automated Tests Passed (100%)

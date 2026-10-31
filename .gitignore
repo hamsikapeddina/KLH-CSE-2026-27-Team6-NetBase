@@ -1,0 +1,28 @@
+# Compiled files
+bin/
+*.o
+*.out
+
+# Persistent runtime data
+server/data/
+data/
+
+# Logs
+server/logs/
+*.log
+
+# Environment secrets
+.env
+.env.*
+
+# Keep example environment file
+!.env.example
+
+# OS and editor files
+*:Zone.Identifier
+.DS_Store
+.vscode/
+.idea/
+
+# Backup folders
+*-backup/
